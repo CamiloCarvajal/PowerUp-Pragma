@@ -16,9 +16,9 @@ public class Handler {
 
     private final UserUseCase userUseCase;
 
-    public Handler(UserUseCase userUseCase) {
-        this.userUseCase = userUseCase;
-    } // ESTO PROBABLEMENTE NO VA
+//    public Handler(UserUseCase userUseCase) {
+//        this.userUseCase = userUseCase;
+//    } // ESTO PROBABLEMENTE NO VA
 
     public Mono<ServerResponse> listenGETUseCase(ServerRequest serverRequest) {
         // useCase.logic();

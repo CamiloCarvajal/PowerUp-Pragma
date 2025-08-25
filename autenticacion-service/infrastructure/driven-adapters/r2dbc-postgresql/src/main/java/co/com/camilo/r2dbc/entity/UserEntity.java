@@ -3,7 +3,6 @@ package co.com.camilo.r2dbc.entity;
 import lombok.*;
 import java.util.Date;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 
@@ -12,11 +11,11 @@ import org.springframework.data.relational.core.mapping.Table;
 @Getter
 @Setter
 @Builder
-@Table("users")
+@Table("usuarios")
 public class UserEntity {
 
     @Id
-    @Column("correo_electronico")
+    private int id;
     private String correo_electronico;
     private String nombre;
     private String apellido;

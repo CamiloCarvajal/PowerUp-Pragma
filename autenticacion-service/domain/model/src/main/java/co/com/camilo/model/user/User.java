@@ -2,17 +2,18 @@ package co.com.camilo.model.user;
 import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-//import lombok.NoArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.util.Date;
 
 @Getter
 @Setter
-//@NoArgsConstructor
+@NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
+@Builder()
 public class User {
 
+    private int id;
     private String nombre;
     private String apellido;
     private String correo_electronico;
