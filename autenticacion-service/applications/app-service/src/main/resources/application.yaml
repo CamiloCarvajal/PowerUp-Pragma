@@ -31,3 +31,10 @@ adapters:
     schema: "public"
     username: "postgres"
     password: "Camilo597"
+
+# Configuración de Swagger/OpenAPI
+springdoc:
+ api-docs:
+   path: /api-docs
+ swagger-ui:
+   path: /swagger-ui.html
