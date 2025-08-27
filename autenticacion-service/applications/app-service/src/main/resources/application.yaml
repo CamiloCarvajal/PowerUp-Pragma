@@ -38,3 +38,10 @@ springdoc:
    path: /api-docs
  swagger-ui:
    path: /swagger-ui.html
+
+# Configuración para logs
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    co.com.camilo: DEBUG
