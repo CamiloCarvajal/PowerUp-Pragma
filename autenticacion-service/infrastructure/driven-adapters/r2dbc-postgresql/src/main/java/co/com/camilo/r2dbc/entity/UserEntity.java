@@ -1,8 +1,10 @@
 package co.com.camilo.r2dbc.entity;
 
 import lombok.*;
-import java.util.Date;
+
+import java.time.LocalDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 
@@ -16,12 +18,15 @@ public class UserEntity {
 
     @Id
     private int id;
-    private String correo_electronico;
+    @Column("correo_electronico")
+    private String correoElectronico;
     private String nombre;
     private String apellido;
-    private Date fecha_nacimiento;
+    @Column("fecha_nacimiento")
+    private LocalDate fechaNacimiento;
     private String direccion;
     private String telefono;
-    private int salario_base;
+    @Column("salario_base")
+    private int salarioBase;
 
 }

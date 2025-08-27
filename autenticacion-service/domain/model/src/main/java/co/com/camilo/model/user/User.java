@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -16,10 +16,10 @@ public class User {
     private int id;
     private String nombre;
     private String apellido;
-    private String correo_electronico;
-    private Date fecha_nacimiento;
+    private String correoElectronico;
+    private LocalDate fechaNacimiento;
     private String direccion;
     private String telefono;
-    private int salario_base;
+    private int salarioBase;
 
 }

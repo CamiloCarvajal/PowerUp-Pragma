@@ -1,7 +1,8 @@
 package co.com.camilo.api.DTO;
 
 import lombok.Data;
-import java.util.Date;
+
+import java.time.LocalDate;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
@@ -23,11 +24,11 @@ public class CreateUserRequest {
     @Schema(description = "Correo electrónico del usuario", example = "camilo@email.com", required = true)
     @NotBlank(message = "El correo electrónico es obligatorio")
     @Email(message = "El formato del correo no es válido")
-    private String correo_electronico;
+    private String correoElectronico;
 
     @Schema(description = "Fecha de nacimiento del usuario", example = "1990-01-01", required = true)
     @NotNull(message = "La fecha de nacimiento es obligatoria")
-    private Date fecha_nacimiento;
+    private LocalDate fechaNacimiento;
 
     @Schema(description = "Dirección del usuario", example = "Calle 123 #45-67")
     private String direccion;
@@ -36,7 +37,8 @@ public class CreateUserRequest {
     private String telefono;
 
     @Schema(description = "Salario base del usuario", example = "50000", required = true)
+    @NotNull(message = "El salario base no debe estar vacío")
     @Min(value = 0, message = "El salario base debe ser mayor o igual a 0")
     @Max(value = 15000000, message = "El salario base debe ser menor o igual a 15000000")
-    private int salario_base;
+    private int salarioBase;
 }
