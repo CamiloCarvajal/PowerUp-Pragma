@@ -1,6 +1,7 @@
 package co.com.camilo.api;
 
 import co.com.camilo.api.DTO.CreateUserRequest;
+import co.com.camilo.api.exception.GlobalExceptionHandler;
 import co.com.camilo.model.user.User;
 import co.com.camilo.usecase.user.UserUseCase;
 
@@ -18,6 +19,11 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -25,6 +31,8 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 public class Handler {
 
     private final UserUseCase userUseCase;
+    private final Validator validator;
+    private final GlobalExceptionHandler exceptionHandler;
 
 //    public Handler(UserUseCase userUseCase) {
 //        this.userUseCase = userUseCase;
@@ -65,16 +73,51 @@ public class Handler {
                     description = "Error interno del servidor"
             )
     })
-    @Parameter(
-            name = "user",
+    @RequestBody(
             required = true,
             content = @Content(schema = @Schema(implementation = CreateUserRequest.class))
     )
     public Mono<ServerResponse> listenSaveUser(@Parameter(description = "Datos del usuario a crear") ServerRequest serverRequest) {
-        return serverRequest.bodyToMono(User.class)
+        return serverRequest.bodyToMono(CreateUserRequest.class)
+                .flatMap(this::validateCreateUserRequest)
+                .flatMap(this::mapToUser)
                 .flatMap(userUseCase::saveUser)
-                .flatMap(savedTask -> ServerResponse.ok()
+                .flatMap(savedUser -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(savedTask));
+                        .bodyValue(savedUser))
+                .onErrorResume(Throwable.class, ex -> 
+                    exceptionHandler.handleAnyException(ex, serverRequest));
+    }
+
+    private Mono<CreateUserRequest> validateCreateUserRequest(CreateUserRequest request) {
+        Set<ConstraintViolation<CreateUserRequest>> violations = validator.validate(request);
+        
+        if (!violations.isEmpty()) {
+            List<String> errors = violations.stream()
+                    .map(ConstraintViolation::getMessage)
+                    .collect(Collectors.toList());
+
+            throw new IllegalArgumentException("Errores de validación: " + String.join(", ", errors));
+        }
+        
+        return Mono.just(request);
+    }
+
+    private Mono<User> mapToUser(CreateUserRequest request) {
+        try {
+            User user = User.builder()
+                    .nombre(request.getNombre())
+                    .apellido(request.getApellido())
+                    .correo_electronico(request.getCorreo_electronico())
+                    .fecha_nacimiento(request.getFecha_nacimiento())
+                    .direccion(request.getDireccion())
+                    .telefono(request.getTelefono())
+                    .salario_base(request.getSalario_base())
+                    .build();
+            
+            return Mono.just(user);
+        } catch (Exception e) {
+            throw new IllegalStateException("Error al mapear datos: " + e.getMessage());
+        }
     }
 }
