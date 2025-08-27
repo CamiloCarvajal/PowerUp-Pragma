@@ -21,6 +21,8 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,10 +35,6 @@ public class Handler {
     private final UserUseCase userUseCase;
     private final Validator validator;
     private final GlobalExceptionHandler exceptionHandler;
-
-//    public Handler(UserUseCase userUseCase) {
-//        this.userUseCase = userUseCase;
-//    } // ESTO PROBABLEMENTE NO VA
 
     public Mono<ServerResponse> listenGETUseCase(ServerRequest serverRequest) {
         // useCase.logic();
@@ -78,6 +76,7 @@ public class Handler {
             content = @Content(schema = @Schema(implementation = CreateUserRequest.class))
     )
     public Mono<ServerResponse> listenSaveUser(@Parameter(description = "Datos del usuario a crear") ServerRequest serverRequest) {
+
         return serverRequest.bodyToMono(CreateUserRequest.class)
                 .flatMap(this::validateCreateUserRequest)
                 .flatMap(this::mapToUser)
@@ -91,7 +90,7 @@ public class Handler {
 
     private Mono<CreateUserRequest> validateCreateUserRequest(CreateUserRequest request) {
         Set<ConstraintViolation<CreateUserRequest>> violations = validator.validate(request);
-        
+
         if (!violations.isEmpty()) {
             List<String> errors = violations.stream()
                     .map(ConstraintViolation::getMessage)
@@ -108,11 +107,11 @@ public class Handler {
             User user = User.builder()
                     .nombre(request.getNombre())
                     .apellido(request.getApellido())
-                    .correo_electronico(request.getCorreo_electronico())
-                    .fecha_nacimiento(request.getFecha_nacimiento())
+                    .correoElectronico(request.getCorreoElectronico())
+                    .fechaNacimiento(request.getFechaNacimiento())
                     .direccion(request.getDireccion())
                     .telefono(request.getTelefono())
-                    .salario_base(request.getSalario_base())
+                    .salarioBase(request.getSalarioBase())
                     .build();
             
             return Mono.just(user);
