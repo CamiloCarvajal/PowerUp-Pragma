@@ -93,34 +93,35 @@ public class Handler {
     }
 
     private Mono<CreateUserRequest> validateCreateUserRequest(CreateUserRequest request) {
-        Set<ConstraintViolation<CreateUserRequest>> violations = validator.validate(request);
-
-        if (!violations.isEmpty()) {
-            List<String> errors = violations.stream()
-                    .map(ConstraintViolation::getMessage)
-                    .collect(Collectors.toList());
-
-            throw new IllegalArgumentException("Errores de validación: " + String.join(", ", errors));
-        }
-        
-        return Mono.just(request);
+        return Mono.defer(() -> {
+            Set<ConstraintViolation<CreateUserRequest>> violations = validator.validate(request);
+    
+            if (!violations.isEmpty()) {
+                List<String> errors = violations.stream()
+                        .map(ConstraintViolation::getMessage)
+                        .collect(Collectors.toList());
+    
+                return Mono.error(new IllegalArgumentException(
+                        "Errores de validación: " + String.join(", ", errors)
+                ));
+            }
+    
+            return Mono.just(request);
+        });
     }
+    
 
     private Mono<User> mapToUser(CreateUserRequest request) {
-        try {
-            User user = User.builder()
-                    .nombre(request.getNombre())
-                    .apellido(request.getApellido())
-                    .correoElectronico(request.getCorreoElectronico())
-                    .fechaNacimiento(request.getFechaNacimiento())
-                    .direccion(request.getDireccion())
-                    .telefono(request.getTelefono())
-                    .salarioBase(request.getSalarioBase())
-                    .build();
-            
-            return Mono.just(user);
-        } catch (Exception e) {
-            throw new IllegalStateException("Error al mapear datos: " + e.getMessage());
-        }
+        return Mono.fromCallable(() -> User.builder()
+                .nombre(request.getNombre())
+                .apellido(request.getApellido())
+                .correoElectronico(request.getCorreoElectronico())
+                .fechaNacimiento(request.getFechaNacimiento())
+                .direccion(request.getDireccion())
+                .telefono(request.getTelefono())
+                .salarioBase(request.getSalarioBase())
+                .build()
+        ).onErrorMap(e -> new IllegalStateException("Error al mapear datos: " + e.getMessage(), e));
     }
+    
 }
