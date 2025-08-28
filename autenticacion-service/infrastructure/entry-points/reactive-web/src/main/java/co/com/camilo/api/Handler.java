@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -22,11 +23,11 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 @Tag(name = "Usuarios", description = "API para gestión de usuarios")
@@ -78,8 +79,11 @@ public class Handler {
     public Mono<ServerResponse> listenSaveUser(@Parameter(description = "Datos del usuario a crear") ServerRequest serverRequest) {
 
         return serverRequest.bodyToMono(CreateUserRequest.class)
+                .doOnNext(request -> log.debug("Request a procesar {}", request))
                 .flatMap(this::validateCreateUserRequest)
+                .doOnNext(request -> log.debug("Usuario validado {}", request))
                 .flatMap(this::mapToUser)
+                .doOnNext(request -> log.debug("Usuario mapeado {}", request))
                 .flatMap(userUseCase::saveUser)
                 .flatMap(savedUser -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
