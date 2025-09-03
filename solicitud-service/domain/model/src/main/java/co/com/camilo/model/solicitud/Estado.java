@@ -11,13 +11,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class Solicitud {
+public class Estado {
 
     private int id;
-    private Long monto;
-    private int plazo;
-    private String email;
-    private Estado estado;
-    private Prestamo prestamo;
- 
+    private String nombre;
+    private String descripcion;
 }

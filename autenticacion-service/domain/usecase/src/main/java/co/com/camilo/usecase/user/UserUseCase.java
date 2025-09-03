@@ -26,7 +26,7 @@ public class UserUseCase {
 
     public Mono<User> findUserByEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
-            throw new IllegalArgumentException("El email no puede ser nulo o vacío");
+            Mono.error(new IllegalArgumentException("El email no puede ser nulo o vacío"));
         }
         
         return userRepository.findByEmail(email);
