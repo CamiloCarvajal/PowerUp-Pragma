@@ -62,11 +62,7 @@ public class Handler {
             return Mono.just(request);
         });
     }
-    private Long monto;
-    private int plazo;
-    private String email;
-    private Estado estado;
-    private Prestamo prestamo;
+
     private Mono<Solicitud> mapToSolicitud(CreateSolicitudDto request) {
 
         return Mono.fromCallable(() -> Solicitud.builder()
@@ -78,7 +74,6 @@ public class Handler {
                 .build()
         ).onErrorMap(e -> new IllegalStateException("Error al mapear datos: " + e.getMessage(), e));
     }
-
 
     private Mono<ServerResponse> construirRespuestaExitosa(Solicitud response) {
         log.info("Solicitud creada exitosamente con ID: {}", response.getId());
