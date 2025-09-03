@@ -15,14 +15,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MyReactiveRepositoryAdapterTest {
+class SolicitudReactiveRepositoryTest {
     // TODO: change four you own tests
 
     @InjectMocks
-    MyReactiveRepositoryAdapter repositoryAdapter;
+    PrestamoRepositoryAdapter repositoryAdapter;
 
     @Mock
-    MyReactiveRepository repository;
+    SolicitudReactiveRepository repository;
 
     @Mock
     ObjectMapper mapper;
@@ -30,10 +30,10 @@ class MyReactiveRepositoryAdapterTest {
     @Test
     void mustFindValueById() {
 
-        when(repository.findById("1")).thenReturn(Mono.just("test"));
+        when(repository.findById(1)).thenReturn(Mono.just("test"));
         when(mapper.map("test", Object.class)).thenReturn("test");
 
-        Mono<Object> result = repositoryAdapter.findById("1");
+        Mono<Object> result = repositoryAdapter.findById(1);
 
         StepVerifier.create(result)
                 .expectNextMatches(value -> value.equals("test"))
