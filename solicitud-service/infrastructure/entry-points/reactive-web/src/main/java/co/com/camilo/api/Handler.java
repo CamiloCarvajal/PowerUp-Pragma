@@ -1,29 +1,136 @@
 package co.com.camilo.api;
 
+import co.com.camilo.api.DTO.CreateSolicitudDto;
+import co.com.camilo.model.solicitud.Estado;
+import co.com.camilo.model.solicitud.Prestamo;
+import co.com.camilo.model.solicitud.Solicitud;
+import co.com.camilo.usecase.solicitud.SolicitudUseCase;
+
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class Handler {
-//private  final UseCase useCase;
-//private  final UseCase2 useCase2;
 
+    private final SolicitudUseCase solicitudUseCase;
+    private final Validator validator;
+
+    public Mono<ServerResponse> crearSolicitud(ServerRequest serverRequest) {
+        log.info("Recibida solicitud POST para crear solicitud de crédito");
+        
+        return serverRequest.bodyToMono(CreateSolicitudDto.class)
+                .doOnNext(clase -> log.debug(" >> Clase {}", clase.prestamo()))
+                .flatMap(this::validateCreateUserRequest)
+//                .flatMap(solicitudValidator::validarDatosEntrada)
+                .flatMap(this::mapToSolicitud)
+                .doOnNext(solicitud -> log.debug("Solicitud Mapped {}", solicitud))
+                .flatMap(solicitudUseCase::crearSolicitud)
+                .flatMap(this::construirRespuestaExitosa)
+                .onErrorResume(this::manejarError);
+
+    }
+
+
+    private Mono<CreateSolicitudDto> validateCreateUserRequest(CreateSolicitudDto request) {
+        return Mono.defer(() -> {
+            Set<ConstraintViolation<CreateSolicitudDto>> violations = validator.validate(request);
+
+            if (!violations.isEmpty()) {
+                List<String> errors = violations.stream()
+                        .map(ConstraintViolation::getMessage)
+                        .collect(Collectors.toList());
+
+                return Mono.error(new IllegalArgumentException(
+                        "Errores de validación: " + String.join(", ", errors)
+                ));
+            }
+
+            return Mono.just(request);
+        });
+    }
+    private Long monto;
+    private int plazo;
+    private String email;
+    private Estado estado;
+    private Prestamo prestamo;
+    private Mono<Solicitud> mapToSolicitud(CreateSolicitudDto request) {
+
+        return Mono.fromCallable(() -> Solicitud.builder()
+                .monto(request.monto())
+                .plazo(request.plazo())
+                .email(request.email())
+                .estado(Estado.builder().id(1).build()) //Pendiente de revisión
+                .prestamo(Prestamo.builder().id(request.prestamo()).build())
+                .build()
+        ).onErrorMap(e -> new IllegalStateException("Error al mapear datos: " + e.getMessage(), e));
+    }
+
+
+    private Mono<ServerResponse> construirRespuestaExitosa(Solicitud response) {
+        log.info("Solicitud creada exitosamente con ID: {}", response.getId());
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("success", true);
+        responseBody.put("message", "Solicitud creada exitosamente");
+        responseBody.put("data", response);
+
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(responseBody);
+    }
+
+    private Mono<ServerResponse> manejarError(Throwable error) {
+        log.error("Error procesando solicitud: {}", error.getMessage(), error);
+        
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("success", false);
+        errorResponse.put("message", "Error al procesar la solicitud");
+        
+        if (error instanceof IllegalArgumentException) {
+            errorResponse.put("error", "Datos inválidos");
+            errorResponse.put("details", error.getMessage());
+            return ServerResponse.badRequest()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(errorResponse);
+        } else if (error instanceof IllegalStateException) {
+            errorResponse.put("error", "Error del sistema");
+            errorResponse.put("details", error.getMessage());
+            return ServerResponse.status(500)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(errorResponse);
+        } else {
+            errorResponse.put("error", "Error interno del servidor");
+            errorResponse.put("details", "Ha ocurrido un error inesperado. Por favor, inténtelo más tarde. " + error.getMessage());
+            return ServerResponse.status(500)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(errorResponse);
+        }
+    }
+
+    // Métodos existentes para mantener compatibilidad
     public Mono<ServerResponse> listenGETUseCase(ServerRequest serverRequest) {
-        // useCase.logic();
-        return ServerResponse.ok().bodyValue("");
+        return ServerResponse.ok().bodyValue("Endpoint GET funcionando");
     }
 
     public Mono<ServerResponse> listenGETOtherUseCase(ServerRequest serverRequest) {
-        // useCase2.logic();
-        return ServerResponse.ok().bodyValue("");
+        return ServerResponse.ok().bodyValue("Otro endpoint GET funcionando");
     }
 
     public Mono<ServerResponse> listenPOSTUseCase(ServerRequest serverRequest) {
-        // useCase.logic();
-        return ServerResponse.ok().bodyValue("");
+        return ServerResponse.ok().bodyValue("Endpoint POST funcionando");
     }
 }

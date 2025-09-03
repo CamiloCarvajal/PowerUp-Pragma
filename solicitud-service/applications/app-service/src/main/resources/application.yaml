@@ -22,3 +22,26 @@ management:
         enabled: true
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
+
+adapters:
+  r2dbc:
+    host: "localhost"
+    port: 5432
+    database: "crediYa_solicitud"
+    schema: "public"
+    username: "postgres"
+    password: "Camilo597"
+
+# Configuración de Swagger/OpenAPI
+springdoc:
+ api-docs:
+   path: /api-docs
+ swagger-ui:
+   path: /swagger-ui.html
+
+# Configuración para logs
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    co.com.camilo: DEBUG
