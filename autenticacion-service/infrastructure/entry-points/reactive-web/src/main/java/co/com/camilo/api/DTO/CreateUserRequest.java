@@ -1,13 +1,8 @@
 package co.com.camilo.api.DTO;
 
 import lombok.Data;
-
 import java.time.LocalDate;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Data
@@ -23,7 +18,7 @@ public class CreateUserRequest {
 
     @Schema(description = "Correo electrónico del usuario", example = "camilo@email.com", required = true)
     @NotBlank(message = "El correo electrónico es obligatorio")
-    @Email(message = "El formato del correo no es válido")
+    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "El formato del correo no es válido")
     private String correoElectronico;
 
     @Schema(description = "Fecha de nacimiento del usuario", example = "1990-01-01", required = true)

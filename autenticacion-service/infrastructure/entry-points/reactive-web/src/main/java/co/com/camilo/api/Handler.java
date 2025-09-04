@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -22,11 +23,11 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 @Tag(name = "Usuarios", description = "API para gestión de usuarios")
@@ -78,8 +79,11 @@ public class Handler {
     public Mono<ServerResponse> listenSaveUser(@Parameter(description = "Datos del usuario a crear") ServerRequest serverRequest) {
 
         return serverRequest.bodyToMono(CreateUserRequest.class)
+                .doOnNext(request -> log.debug("Request a procesar {}", request))
                 .flatMap(this::validateCreateUserRequest)
+                .doOnNext(request -> log.debug("Usuario validado {}", request))
                 .flatMap(this::mapToUser)
+                .doOnNext(request -> log.debug("Usuario mapeado {}", request))
                 .flatMap(userUseCase::saveUser)
                 .flatMap(savedUser -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
@@ -89,34 +93,34 @@ public class Handler {
     }
 
     private Mono<CreateUserRequest> validateCreateUserRequest(CreateUserRequest request) {
-        Set<ConstraintViolation<CreateUserRequest>> violations = validator.validate(request);
+        return Mono.defer(() -> {
+            Set<ConstraintViolation<CreateUserRequest>> violations = validator.validate(request);
 
-        if (!violations.isEmpty()) {
-            List<String> errors = violations.stream()
-                    .map(ConstraintViolation::getMessage)
-                    .collect(Collectors.toList());
+            if (!violations.isEmpty()) {
+                List<String> errors = violations.stream()
+                        .map(ConstraintViolation::getMessage)
+                        .collect(Collectors.toList());
 
-            throw new IllegalArgumentException("Errores de validación: " + String.join(", ", errors));
-        }
-        
-        return Mono.just(request);
+                return Mono.error(new IllegalArgumentException(
+                        "Errores de validación: " + String.join(", ", errors)
+                ));
+            }
+
+            return Mono.just(request);
+        });
     }
 
     private Mono<User> mapToUser(CreateUserRequest request) {
-        try {
-            User user = User.builder()
-                    .nombre(request.getNombre())
-                    .apellido(request.getApellido())
-                    .correoElectronico(request.getCorreoElectronico())
-                    .fechaNacimiento(request.getFechaNacimiento())
-                    .direccion(request.getDireccion())
-                    .telefono(request.getTelefono())
-                    .salarioBase(request.getSalarioBase())
-                    .build();
-            
-            return Mono.just(user);
-        } catch (Exception e) {
-            throw new IllegalStateException("Error al mapear datos: " + e.getMessage());
-        }
+        return Mono.fromCallable(() -> User.builder()
+                .nombre(request.getNombre())
+                .apellido(request.getApellido())
+                .correoElectronico(request.getCorreoElectronico())
+                .fechaNacimiento(request.getFechaNacimiento())
+                .direccion(request.getDireccion())
+                .telefono(request.getTelefono())
+                .salarioBase(request.getSalarioBase())
+                .build()
+        ).onErrorMap(e -> new IllegalStateException("Error al mapear datos: " + e.getMessage(), e));
     }
+
 }
