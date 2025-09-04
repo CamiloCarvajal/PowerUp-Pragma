@@ -6,6 +6,13 @@ import co.com.camilo.model.solicitud.Prestamo;
 import co.com.camilo.model.solicitud.Solicitud;
 import co.com.camilo.usecase.solicitud.SolicitudUseCase;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
@@ -21,14 +28,43 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
-@Slf4j
+@Tag(name = "Solicitudes", description = "API para gestión de usuarios")
 public class Handler {
 
     private final SolicitudUseCase solicitudUseCase;
     private final Validator validator;
 
+    @Operation(
+            operationId = "crearSolicitud",
+            summary = "Guardar solicitud",
+            description = "Crea un nuevo solicitud en el sistema",
+            tags = { "Solicitudes" }
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Solicitud creada exitosamente",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = Solicitud.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Datos de entrada inválidos"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Error interno del servidor"
+            )
+    })
+    @RequestBody(
+            required = true,
+            content = @Content(schema = @Schema(implementation = CreateSolicitudDto.class))
+    )
     public Mono<ServerResponse> crearSolicitud(ServerRequest serverRequest) {
         log.info("Recibida solicitud POST para crear solicitud de crédito");
         
@@ -85,7 +121,7 @@ public class Handler {
 
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(responseBody);
+                .bodyValue(response);
     }
 
     private Mono<ServerResponse> manejarError(Throwable error) {
