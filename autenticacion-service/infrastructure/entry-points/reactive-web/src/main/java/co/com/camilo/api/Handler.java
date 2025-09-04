@@ -95,21 +95,20 @@ public class Handler {
     private Mono<CreateUserRequest> validateCreateUserRequest(CreateUserRequest request) {
         return Mono.defer(() -> {
             Set<ConstraintViolation<CreateUserRequest>> violations = validator.validate(request);
-    
+
             if (!violations.isEmpty()) {
                 List<String> errors = violations.stream()
                         .map(ConstraintViolation::getMessage)
                         .collect(Collectors.toList());
-    
+
                 return Mono.error(new IllegalArgumentException(
                         "Errores de validación: " + String.join(", ", errors)
                 ));
             }
-    
+
             return Mono.just(request);
         });
     }
-    
 
     private Mono<User> mapToUser(CreateUserRequest request) {
         return Mono.fromCallable(() -> User.builder()
@@ -123,5 +122,4 @@ public class Handler {
                 .build()
         ).onErrorMap(e -> new IllegalStateException("Error al mapear datos: " + e.getMessage(), e));
     }
-    
 }
