@@ -36,4 +36,14 @@ public class CreateUserRequest {
     @Min(value = 0, message = "El salario base debe ser mayor o igual a 0")
     @Max(value = 15000000, message = "El salario base debe ser menor o igual a 15000000")
     private int salarioBase;
+
+    @Schema(description = "ID del rol del usuario", example = "1", required = true)
+    @NotNull(message = "El ID del rol es obligatorio")
+    @Min(value = 1, message = "El ID del rol debe ser mayor a 0")
+    private int idRol;
+
+    @Schema(description = "Contraseña del usuario", example = "password123", required = true)
+    @NotBlank(message = "La contraseña es obligatoria")
+    @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
+    private String password;
 }

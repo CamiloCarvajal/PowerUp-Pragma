@@ -19,5 +19,7 @@ public class User {
     private String direccion;
     private String telefono;
     private int salarioBase;
+    private int idRol;
+    private String password;
 
 }
