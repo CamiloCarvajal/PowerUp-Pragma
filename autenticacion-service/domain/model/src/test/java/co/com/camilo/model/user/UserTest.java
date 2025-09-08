@@ -6,7 +6,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import java.time.LocalDate;
-import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -27,6 +26,8 @@ class UserTest {
                 .direccion("Calle 123 #45-67")
                 .telefono("+57 300 123 4567")
                 .salarioBase(50000)
+                .idRol(1)
+                .password("password123")
                 .build();
     }
 
@@ -46,6 +47,8 @@ class UserTest {
             assertEquals("Calle 123 #45-67", user.getDireccion());
             assertEquals("+57 300 123 4567", user.getTelefono());
             assertEquals(50000, user.getSalarioBase());
+            assertEquals(1, user.getIdRol());
+            assertEquals("password123", user.getPassword());
         }
 
         @Test
@@ -61,6 +64,8 @@ class UserTest {
             assertEquals("ana@email.com", minimalUser.getCorreoElectronico());
             assertEquals(0, minimalUser.getId());
             assertEquals(0, minimalUser.getSalarioBase());
+            assertEquals(0, minimalUser.getIdRol());
+            assertNull(minimalUser.getPassword());
         }
     }
 
@@ -80,6 +85,8 @@ class UserTest {
             user.setDireccion("Avenida 456 #78-90");
             user.setTelefono("+57 310 987 6543");
             user.setSalarioBase(75000);
+            user.setIdRol(2);
+            user.setPassword("newpassword456");
 
             // Test getters
             assertEquals(2, user.getId());
@@ -90,6 +97,8 @@ class UserTest {
             assertEquals("Avenida 456 #78-90", user.getDireccion());
             assertEquals("+57 310 987 6543", user.getTelefono());
             assertEquals(75000, user.getSalarioBase());
+            assertEquals(2, user.getIdRol());
+            assertEquals("newpassword456", user.getPassword());
         }
     }
 
@@ -153,6 +162,7 @@ class UserTest {
                     .correoElectronico(null)
                     .direccion(null)
                     .telefono(null)
+                    .password(null)
                     .build();
 
             assertNull(userWithNulls.getNombre());
@@ -160,6 +170,7 @@ class UserTest {
             assertNull(userWithNulls.getCorreoElectronico());
             assertNull(userWithNulls.getDireccion());
             assertNull(userWithNulls.getTelefono());
+            assertNull(userWithNulls.getPassword());
         }
 
         @Test
@@ -168,10 +179,12 @@ class UserTest {
             user.setNombre("");
             user.setApellido("");
             user.setCorreoElectronico("");
+            user.setPassword("");
 
             assertEquals("", user.getNombre());
             assertEquals("", user.getApellido());
             assertEquals("", user.getCorreoElectronico());
+            assertEquals("", user.getPassword());
         }
 
         @Test
@@ -179,9 +192,11 @@ class UserTest {
         void shouldHandleZeroValues() {
             user.setId(0);
             user.setSalarioBase(0);
+            user.setIdRol(0);
 
             assertEquals(0, user.getId());
             assertEquals(0, user.getSalarioBase());
+            assertEquals(0, user.getIdRol());
         }
     }
 }

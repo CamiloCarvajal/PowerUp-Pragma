@@ -6,6 +6,7 @@ import co.com.camilo.model.autenticacion.UsuarioAutenticado;
 import co.com.camilo.model.autenticacion.gateways.AutenticacionRepository;
 import co.com.camilo.model.autenticacion.gateways.JwtService;
 import co.com.camilo.model.exceptions.AutenticacionException;
+import co.com.camilo.model.exceptions.CredencialesInvalidasException;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
@@ -16,6 +17,11 @@ public class AutenticacionUseCase {
     private final JwtService jwtService;
 
     public Mono<TokenResponse> autenticarUsuario(LoginRequest loginRequest) {
+
+        if (loginRequest.getCorreoElectronico() == null || loginRequest.getPassword() == null) {
+            return Mono.error(new CredencialesInvalidasException("Correo electrónico y contraseña son requeridos"));
+        }
+
         return autenticacionRepository.autenticarUsuario(loginRequest.getCorreoElectronico(), loginRequest.getPassword())
                 .flatMap(usuario -> jwtService.generarToken(usuario)
                         .map(token -> TokenResponse.builder()

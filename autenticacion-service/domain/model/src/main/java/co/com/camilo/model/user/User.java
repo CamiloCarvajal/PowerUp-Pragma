@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class User {
 
+    @EqualsAndHashCode.Include
     private int id;
     private String nombre;
     private String apellido;
