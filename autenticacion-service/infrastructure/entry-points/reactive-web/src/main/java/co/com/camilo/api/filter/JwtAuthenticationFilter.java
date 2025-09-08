@@ -2,10 +2,13 @@ package co.com.camilo.api.filter;
 
 import co.com.camilo.model.autenticacion.gateways.JwtService;
 import co.com.camilo.model.exceptions.TokenInvalidoException;
+import co.com.camilo.model.exceptions.AutenticacionException;
+
+import java.util.List;
+import reactor.core.publisher.Mono;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
@@ -13,9 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
-import reactor.core.publisher.Mono;
-
-import java.util.List;
 
 @Slf4j
 @Component
@@ -24,7 +24,7 @@ public class JwtAuthenticationFilter implements WebFilter {
 
     private final JwtService jwtService;
     private static final String BEARER_PREFIX = "Bearer ";
-
+    
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getPath().value();
@@ -35,17 +35,14 @@ public class JwtAuthenticationFilter implements WebFilter {
         }
 
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        System.out.print(">>> Header" + authHeader);
+        
         if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
-            System.out.println(">>> Aca me mori ");
             log.warn("Token de autorización no encontrado o formato inválido para path: {}", path);
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            System.out.println(exchange.getResponse().setComplete());
-            return exchange.getResponse().setComplete();
+            return Mono.error(new AutenticacionException("Token de autorización requerido"));
         }
 
         String token = authHeader.substring(BEARER_PREFIX.length());
-        System.out.print(">>> token" + token);
+        
         return jwtService.validarToken(token)
                 .flatMap(usuario -> {
                     List<SimpleGrantedAuthority> authorities = List.of(
@@ -58,15 +55,13 @@ public class JwtAuthenticationFilter implements WebFilter {
                     return chain.filter(exchange)
                             .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
                 })
-                .onErrorResume(TokenInvalidoException.class, ex -> {
+                .onErrorMap(TokenInvalidoException.class, ex -> {
                     log.warn("Token inválido para path: {}", path, ex);
-                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                    return exchange.getResponse().setComplete();
+                    return new TokenInvalidoException("Token inválido o expirado");
                 })
-                .onErrorResume(ex -> {
+                .onErrorMap(ex -> {
                     log.error("Error en autenticación para path: {}", path, ex);
-                    exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-                    return exchange.getResponse().setComplete();
+                    return new AutenticacionException("Error en el proceso de autenticación", ex);
                 });
     }
 

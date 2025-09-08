@@ -1,7 +1,7 @@
 package co.com.camilo.api.DTO;
 
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 @Getter
@@ -12,7 +12,7 @@ import jakarta.validation.constraints.NotBlank;
 public class LoginRequestDTO {
 
     @NotBlank(message = "El correo electrónico es obligatorio")
-    @Email(message = "El formato del correo electrónico no es válido")
+    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "El formato del correo no es válido")
     private String correoElectronico;
 
     @NotBlank(message = "La contraseña es obligatoria")

@@ -12,17 +12,15 @@ public class RolValidator {
     public static Mono<Void> validarRolAdminOAsesor(Authentication authentication) {
         return Mono.fromCallable(() -> {
 
-            System.out.print("-------");
-            System.out.println(authentication.getAuthorities());
-//            if (authentication == null || !authentication.isAuthenticated()) {
-//                throw new AccesoDenegadoException("Usuario no autenticado");
-//            }
+            if (authentication == null || !authentication.isAuthenticated()) {
+                throw new AccesoDenegadoException("Usuario no autenticado");
+            }
 
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
             boolean tienePermiso = authorities.stream()
                     .anyMatch(auth -> "ROLE_ADMIN".equals(auth.getAuthority()) || 
                                      "ROLE_ASESOR".equals(auth.getAuthority()));
-            tienePermiso = true;
+
             if (!tienePermiso) {
                 throw new AccesoDenegadoException("Acceso denegado. Se requiere rol de ADMIN o ASESOR");
             }

@@ -1,5 +1,6 @@
 package co.com.camilo.api;
 
+import co.com.camilo.api.DTO.CreateUserRequest;
 import co.com.camilo.api.DTO.LoginRequestDTO;
 import co.com.camilo.api.DTO.TokenResponseDTO;
 import co.com.camilo.api.exception.GlobalExceptionHandler;
@@ -13,6 +14,8 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -21,12 +24,17 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 @Tag(name = "Autenticación", description = "API para autenticación de usuarios")
 public class AutenticacionHandler {
 
+    private final Validator validator;
     private final AutenticacionUseCase autenticacionUseCase;
     private final GlobalExceptionHandler exceptionHandler;
 
@@ -65,6 +73,7 @@ public class AutenticacionHandler {
     public Mono<ServerResponse> iniciarSesion(ServerRequest serverRequest) {
         return serverRequest.bodyToMono(LoginRequestDTO.class)
                 .doOnNext(request -> log.debug("Request de login recibido para: {}", request.getCorreoElectronico()))
+                .flatMap(this::validateLoginRequest)
                 .map(this::mapearALoginRequest)
                 .flatMap(autenticacionUseCase::autenticarUsuario)
                 .map(this::mapearATokenResponseDTO)
@@ -74,6 +83,24 @@ public class AutenticacionHandler {
                 .doOnNext(response -> log.info("Login exitoso"))
                 .onErrorResume(Throwable.class, ex -> 
                     exceptionHandler.handleAnyException(ex, serverRequest));
+    }
+
+    private Mono<LoginRequestDTO> validateLoginRequest(LoginRequestDTO request) {
+        return Mono.defer(() -> {
+            Set<ConstraintViolation<LoginRequestDTO>> violations = validator.validate(request);
+
+            if (!violations.isEmpty()) {
+                List<String> errors = violations.stream()
+                        .map(ConstraintViolation::getMessage)
+                        .collect(Collectors.toList());
+
+                return Mono.error(new IllegalArgumentException(
+                        "Errores de validación: " + String.join(", ", errors)
+                ));
+            }
+
+            return Mono.just(request);
+        });
     }
 
     private LoginRequest mapearALoginRequest(LoginRequestDTO dto) {

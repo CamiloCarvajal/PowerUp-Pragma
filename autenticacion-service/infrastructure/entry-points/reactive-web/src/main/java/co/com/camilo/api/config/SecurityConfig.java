@@ -27,7 +27,6 @@ public class SecurityConfig {
                         .pathMatchers("/actuator/**").permitAll()
                         .pathMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**", "/webjars/**").permitAll()
                         .pathMatchers("/api/v1/usuarios").hasAnyRole("ADMIN", "ASESOR")
-//                        .pathMatchers("/api/v1/solicitudes-prestamo").hasRole("CLIENTE")
                         .anyExchange().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
