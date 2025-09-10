@@ -1,6 +1,6 @@
 package co.com.camilo.api.exception;
 
-import java.time.LocalDateTime;
+import co.com.camilo.model.exceptions.*;
 import java.util.Map;
 
 import reactor.core.publisher.Mono;
@@ -46,6 +46,31 @@ public class GlobalExceptionHandler {
 
         if (ex instanceof UnsupportedOperationException) {
             return HttpStatus.METHOD_NOT_ALLOWED; // 405
+        }
+
+        // Custom authentication exceptions
+        if (ex instanceof CredencialesInvalidasException) {
+            return HttpStatus.UNAUTHORIZED;       // 401
+        }
+
+        if (ex instanceof UsuarioNoEncontradoException) {
+            return HttpStatus.NOT_FOUND;          // 404
+        }
+
+        if (ex instanceof TokenInvalidoException) {
+            return HttpStatus.UNAUTHORIZED;       // 401
+        }
+
+        if (ex instanceof AccesoDenegadoException) {
+            return HttpStatus.FORBIDDEN;          // 403
+        }
+
+        if (ex instanceof RolNoEncontradoException) {
+            return HttpStatus.NOT_FOUND;          // 404
+        }
+
+        if (ex instanceof AutenticacionException) {
+            return HttpStatus.UNAUTHORIZED;       // 401
         }
 
         return HttpStatus.INTERNAL_SERVER_ERROR;  // 500

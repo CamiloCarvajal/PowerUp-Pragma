@@ -1,5 +1,6 @@
 package co.com.camilo.usecase.solicitud;
 
+import co.com.camilo.model.autenticacion.UsuarioAutenticado;
 import co.com.camilo.model.exceptions.PrestamoNotFoundException;
 import co.com.camilo.model.solicitud.*;
 import co.com.camilo.model.solicitud.gateways.PrestamoRepository;
@@ -54,6 +55,17 @@ class SolicitudUseCaseTest {
                 .prestamo(Prestamo.builder().id(1).build())
                 .build();
     }
+    
+    private UsuarioAutenticado crearUsuarioCliente() {
+        return UsuarioAutenticado.builder()
+                .id(1)
+                .nombre("Juan")
+                .apellido("Pérez")
+                .correoElectronico("test@example.com")
+                .idRol(1)
+                .nombreRol("CLIENTE")
+                .build();
+    }
 
     @Nested
     @DisplayName("crearSolicitud Tests")
@@ -76,7 +88,7 @@ class SolicitudUseCaseTest {
             when(solicitudRepository.save(any(Solicitud.class))).thenReturn(Mono.just(expectedSolicitud));
 
             // When
-            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitud);
+            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitud, crearUsuarioCliente());
 
             // Then
             StepVerifier.create(result)
@@ -94,7 +106,7 @@ class SolicitudUseCaseTest {
             when(prestamoRepository.findById(1)).thenReturn(Mono.empty());
 
             // When
-            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitud);
+            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitud, crearUsuarioCliente());
 
             // Then
             StepVerifier.create(result)
@@ -113,7 +125,7 @@ class SolicitudUseCaseTest {
             when(prestamoRepository.findById(1)).thenReturn(Mono.error(repositoryError));
 
             // When
-            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitud);
+            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitud, crearUsuarioCliente());
 
             // Then
             StepVerifier.create(result)
@@ -157,7 +169,7 @@ class SolicitudUseCaseTest {
             when(solicitudRepository.save(any(Solicitud.class))).thenReturn(Mono.just(expectedSolicitud));
 
             // When
-            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitudWithDifferentPrestamo);
+            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitudWithDifferentPrestamo, crearUsuarioCliente());
 
             // Then
             StepVerifier.create(result)
@@ -182,7 +194,7 @@ class SolicitudUseCaseTest {
                     .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
 
             // When
-            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitud);
+            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitud, crearUsuarioCliente());
 
             // Then
             StepVerifier.create(result)
@@ -203,7 +215,7 @@ class SolicitudUseCaseTest {
             when(prestamoRepository.findById(1)).thenReturn(Mono.empty());
 
             // When
-            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitud);
+            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitud, crearUsuarioCliente());
 
             // Then
             StepVerifier.create(result)
@@ -227,7 +239,7 @@ class SolicitudUseCaseTest {
             when(prestamoRepository.findById(0)).thenReturn(Mono.empty());
 
             // When
-            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitudWithZeroPrestamoId);
+            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitudWithZeroPrestamoId, crearUsuarioCliente());
 
             // Then
             StepVerifier.create(result)
@@ -259,7 +271,7 @@ class SolicitudUseCaseTest {
             when(solicitudRepository.save(any(Solicitud.class))).thenReturn(Mono.just(expectedSolicitud));
 
             // When
-            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitud);
+            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitud, crearUsuarioCliente());
 
             // Then
             StepVerifier.create(result)
@@ -289,7 +301,7 @@ class SolicitudUseCaseTest {
             when(solicitudRepository.save(any(Solicitud.class))).thenReturn(Mono.just(originalSolicitud));
 
             // When
-            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(originalSolicitud);
+            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(originalSolicitud, crearUsuarioCliente());
 
             // Then
             StepVerifier.create(result)
@@ -330,7 +342,7 @@ class SolicitudUseCaseTest {
             when(solicitudRepository.save(any(Solicitud.class))).thenReturn(Mono.just(savedSolicitud));
 
             // When
-            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(inputSolicitud);
+            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(inputSolicitud, crearUsuarioCliente());
 
             // Then
             StepVerifier.create(result)
@@ -357,7 +369,7 @@ class SolicitudUseCaseTest {
             when(solicitudRepository.save(any(Solicitud.class))).thenReturn(Mono.error(saveError));
 
             // When
-            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitud);
+            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitud, crearUsuarioCliente());
 
             // Then
             StepVerifier.create(result)
@@ -385,7 +397,7 @@ class SolicitudUseCaseTest {
                     .build();
 
             // When & Then
-            assertThatThrownBy(() -> solicitudUseCase.crearSolicitud(solicitudWithNullPrestamo))
+            assertThatThrownBy(() -> solicitudUseCase.crearSolicitud(solicitudWithNullPrestamo, crearUsuarioCliente()))
                     .isInstanceOf(NullPointerException.class);
         }
 
@@ -404,7 +416,7 @@ class SolicitudUseCaseTest {
             when(solicitudRepository.save(any(Solicitud.class))).thenReturn(Mono.just(solicitudWithNullEmail));
 
             // When
-            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitudWithNullEmail);
+            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitudWithNullEmail, crearUsuarioCliente());
 
             // Then
             StepVerifier.create(result)
@@ -427,7 +439,7 @@ class SolicitudUseCaseTest {
             when(solicitudRepository.save(any(Solicitud.class))).thenReturn(Mono.just(solicitudWithZeroMonto));
 
             // When
-            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitudWithZeroMonto);
+            Mono<Solicitud> result = solicitudUseCase.crearSolicitud(solicitudWithZeroMonto, crearUsuarioCliente());
 
             // Then
             StepVerifier.create(result)

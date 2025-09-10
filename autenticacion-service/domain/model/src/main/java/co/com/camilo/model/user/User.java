@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class User {
 
+    @EqualsAndHashCode.Include
     private int id;
     private String nombre;
     private String apellido;
@@ -19,5 +20,7 @@ public class User {
     private String direccion;
     private String telefono;
     private int salarioBase;
+    private int idRol;
+    private String password;
 
 }

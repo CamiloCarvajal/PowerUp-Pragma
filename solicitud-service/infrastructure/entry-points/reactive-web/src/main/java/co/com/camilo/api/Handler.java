@@ -1,6 +1,7 @@
 package co.com.camilo.api;
 
 import co.com.camilo.api.DTO.CreateSolicitudDto;
+import co.com.camilo.model.autenticacion.UsuarioAutenticado;
 import co.com.camilo.model.solicitud.Estado;
 import co.com.camilo.model.solicitud.Prestamo;
 import co.com.camilo.model.solicitud.Solicitud;
@@ -18,6 +19,8 @@ import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -71,10 +74,10 @@ public class Handler {
         return serverRequest.bodyToMono(CreateSolicitudDto.class)
                 .doOnNext(clase -> log.debug(" >> Clase {}", clase.prestamo()))
                 .flatMap(this::validateCreateUserRequest)
-//                .flatMap(solicitudValidator::validarDatosEntrada)
                 .flatMap(this::mapToSolicitud)
                 .doOnNext(solicitud -> log.debug("Solicitud Mapped {}", solicitud))
-                .flatMap(solicitudUseCase::crearSolicitud)
+                .flatMap(solicitud -> obtenerUsuarioAutenticado()
+                .flatMap(usuario -> solicitudUseCase.crearSolicitud(solicitud, usuario)))
                 .flatMap(this::construirRespuestaExitosa)
                 .onErrorResume(this::manejarError);
 
@@ -124,6 +127,12 @@ public class Handler {
                 .bodyValue(response);
     }
 
+    private Mono<UsuarioAutenticado> obtenerUsuarioAutenticado() {
+        return ReactiveSecurityContextHolder.getContext()
+                .map(securityContext -> (UsuarioAutenticado) securityContext.getAuthentication().getPrincipal())
+                .switchIfEmpty(Mono.error(new RuntimeException("Usuario no autenticado")));
+    }
+
     private Mono<ServerResponse> manejarError(Throwable error) {
         log.error("Error procesando solicitud: {}", error.getMessage(), error);
         
@@ -141,6 +150,12 @@ public class Handler {
             errorResponse.put("error", "Error del sistema");
             errorResponse.put("details", error.getMessage());
             return ServerResponse.status(500)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(errorResponse);
+        } else if (error.getMessage() != null && error.getMessage().contains("autenticado")) {
+            errorResponse.put("error", "Error de autenticación");
+            errorResponse.put("details", error.getMessage());
+            return ServerResponse.status(401)
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(errorResponse);
         } else {

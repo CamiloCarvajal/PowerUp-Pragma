@@ -1,26 +1,31 @@
 package co.com.camilo.usecase.user;
 
+import reactor.core.publisher.Mono;
 import co.com.camilo.model.user.User;
+import co.com.camilo.model.autenticacion.gateways.PasswordEncoder;
 import co.com.camilo.model.user.gateways.UserRepository;
 
-import reactor.core.publisher.Mono;
 
-
-//@RequiredArgsConstructor
 public class UserUseCase {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserUseCase(UserRepository userRepository) {
+    public UserUseCase(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public Mono<User> saveUser(User user) {
+        // Encode password before saving
+        User userWithEncodedPassword = user.toBuilder()
+                .password(passwordEncoder.encode(user.getPassword()))
+                .build();
 
         return userRepository.findByEmail(user.getCorreoElectronico())
                 .flatMap(existingUser ->
                         Mono.<User>error(new IllegalStateException("El usuario ya existe.")))
-                .switchIfEmpty(userRepository.save(user));
+                .switchIfEmpty(userRepository.save(userWithEncodedPassword));
     }
 
 
