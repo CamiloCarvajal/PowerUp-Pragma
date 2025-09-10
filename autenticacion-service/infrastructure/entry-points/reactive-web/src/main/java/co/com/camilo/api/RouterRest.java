@@ -1,10 +1,5 @@
 package co.com.camilo.api;
 
-import co.com.camilo.api.DTO.CreateUserRequest;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import org.springdoc.core.annotations.RouterOperation;
 import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;
@@ -24,11 +19,20 @@ public class RouterRest {
                     path = "/api/v1/usuarios",
                     beanClass = Handler.class,
                     beanMethod = "listenSaveUser"
+            ),
+            @RouterOperation(
+                    path = "/api/v1/login",
+                    beanClass = AutenticacionHandler.class,
+                    beanMethod = "iniciarSesion"
+            ),
+            @RouterOperation(
+                    path = "/api/v1/solicitudes-prestamo",
+                    beanClass = Handler.class,
+                    beanMethod = "crearSolicitudPrestamo"
             )
     })
-    public RouterFunction<ServerResponse> routerFunction(Handler handler) {
-        return route(POST("/api/v1/usuarios"), handler::listenSaveUser);
-//                .andRoute(GET("/api/v1/usuarios"), handler::listenGETUseCase)
-//                .and(route(GET("/api/users/path"), handler::listenGETOtherUseCase));
+    public RouterFunction<ServerResponse> routerFunction(Handler handler, AutenticacionHandler autenticacionHandler) {
+        return route(POST("/api/v1/usuarios"), handler::listenSaveUser)
+                .andRoute(POST("/api/v1/login"), autenticacionHandler::iniciarSesion);
     }
 }

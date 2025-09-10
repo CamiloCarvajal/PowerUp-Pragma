@@ -2,6 +2,7 @@ package co.com.camilo.api;
 
 import co.com.camilo.api.DTO.CreateUserRequest;
 import co.com.camilo.api.exception.GlobalExceptionHandler;
+import co.com.camilo.api.util.RolValidator;
 import co.com.camilo.model.user.User;
 import co.com.camilo.usecase.user.UserUseCase;
 
@@ -20,6 +21,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 
@@ -78,7 +81,10 @@ public class Handler {
     )
     public Mono<ServerResponse> listenSaveUser(@Parameter(description = "Datos del usuario a crear") ServerRequest serverRequest) {
 
-        return serverRequest.bodyToMono(CreateUserRequest.class)
+        return ReactiveSecurityContextHolder.getContext()
+                .map(securityContext -> securityContext.getAuthentication())
+                .flatMap(RolValidator::validarRolAdminOAsesor)
+                .then(serverRequest.bodyToMono(CreateUserRequest.class))
                 .doOnNext(request -> log.debug("Request a procesar {}", request))
                 .flatMap(this::validateCreateUserRequest)
                 .doOnNext(request -> log.debug("Usuario validado {}", request))
@@ -119,7 +125,10 @@ public class Handler {
                 .direccion(request.getDireccion())
                 .telefono(request.getTelefono())
                 .salarioBase(request.getSalarioBase())
+                .idRol(request.getIdRol())
+                .password(request.getPassword())
                 .build()
         ).onErrorMap(e -> new IllegalStateException("Error al mapear datos: " + e.getMessage(), e));
     }
+
 }

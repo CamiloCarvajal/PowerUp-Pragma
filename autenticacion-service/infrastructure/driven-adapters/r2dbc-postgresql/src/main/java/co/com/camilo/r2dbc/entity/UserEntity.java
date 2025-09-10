@@ -28,5 +28,8 @@ public class UserEntity {
     private String telefono;
     @Column("salario_base")
     private int salarioBase;
+    @Column("id_rol")
+    private int idRol;
+    private String password;
 
 }

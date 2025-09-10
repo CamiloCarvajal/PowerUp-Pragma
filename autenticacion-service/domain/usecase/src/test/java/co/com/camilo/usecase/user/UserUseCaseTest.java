@@ -2,6 +2,7 @@ package co.com.camilo.usecase.user;
 
 import co.com.camilo.model.user.User;
 import co.com.camilo.model.user.gateways.UserRepository;
+import co.com.camilo.model.autenticacion.gateways.PasswordEncoder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +26,9 @@ class UserUseCaseTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private UserUseCase userUseCase;
 
@@ -42,6 +46,7 @@ class UserUseCaseTest {
                 .direccion("Calle 123 #45-67")
                 .telefono("+57 300 123 4567")
                 .salarioBase(150000)
+                .password("password123")
                 .build();
 
         existingUser = User.builder()
@@ -53,6 +58,7 @@ class UserUseCaseTest {
                 .direccion("Calle 123 #45-67")
                 .telefono("+57 300 123 4567")
                 .salarioBase(150000)
+                .password("encodedpassword123")
                 .build();
     }
 
@@ -66,7 +72,9 @@ class UserUseCaseTest {
             // Arrange
             when(userRepository.findByEmail(validUser.getCorreoElectronico()))
                     .thenReturn(Mono.empty());
-            when(userRepository.save(validUser))
+            when(passwordEncoder.encode(validUser.getPassword()))
+                    .thenReturn("encodedpassword123");
+            when(userRepository.save(any(User.class)))
                     .thenReturn(Mono.just(existingUser));
 
             // Act
@@ -78,7 +86,8 @@ class UserUseCaseTest {
                     .verifyComplete();
 
             verify(userRepository).findByEmail(validUser.getCorreoElectronico());
-            verify(userRepository).save(validUser);
+            verify(passwordEncoder).encode(validUser.getPassword());
+            verify(userRepository).save(any(User.class));
         }
 
         @Test
@@ -219,15 +228,46 @@ class UserUseCaseTest {
                     .salarioBase(50000)
                     .build();
 
-            when(userRepository.findByEmail(userWithLowSalary.getCorreoElectronico()))
-                    .thenReturn(Mono.empty());
-
             // Act & Assert
             StepVerifier.create(userUseCase.saveUser(userWithLowSalary))
                     .expectError(IllegalStateException.class)
                     .verify();
 
-            verify(userRepository).findByEmail(userWithLowSalary.getCorreoElectronico());
+            verify(userRepository, never()).findByEmail(any());
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when password is null")
+        void shouldThrowExceptionWhenPasswordIsNull() {
+            // Arrange
+            User userWithoutPassword = validUser.toBuilder()
+                    .password(null)
+                    .build();
+
+            // Act & Assert
+            StepVerifier.create(userUseCase.saveUser(userWithoutPassword))
+                    .expectError(IllegalArgumentException.class)
+                    .verify();
+
+            verify(userRepository, never()).findByEmail(any());
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when password is empty")
+        void shouldThrowExceptionWhenPasswordIsEmpty() {
+            // Arrange
+            User userWithEmptyPassword = validUser.toBuilder()
+                    .password("")
+                    .build();
+
+            // Act & Assert
+            StepVerifier.create(userUseCase.saveUser(userWithEmptyPassword))
+                    .expectError(IllegalArgumentException.class)
+                    .verify();
+
+            verify(userRepository, never()).findByEmail(any());
             verify(userRepository, never()).save(any());
         }
     }

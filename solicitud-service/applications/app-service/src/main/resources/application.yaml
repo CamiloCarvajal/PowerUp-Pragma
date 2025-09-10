@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8081
 spring:
   application:
     name: "solicitudes"
@@ -39,9 +39,15 @@ springdoc:
  swagger-ui:
    path: /swagger-ui.html
 
+# JWT Configuration
+jwt:
+  secret: miClaveSecretaMuySeguraParaJWTQueDebeSerMuyLargaYComplejaParaSeguridad
+  expiration: 86400000 # 24 horas en milisegundos
+
 # Configuración para logs
 logging:
   level:
     root: INFO
     org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
     co.com.camilo: DEBUG
