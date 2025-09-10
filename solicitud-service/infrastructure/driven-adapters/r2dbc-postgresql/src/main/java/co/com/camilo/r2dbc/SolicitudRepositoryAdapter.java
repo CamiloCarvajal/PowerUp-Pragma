@@ -8,6 +8,7 @@ import co.com.camilo.r2dbc.entity.SolicitudEntity;
 import co.com.camilo.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
@@ -67,6 +68,40 @@ public class SolicitudRepositoryAdapter extends ReactiveAdapterOperations<
                         .prestamo(Prestamo.builder().id(d.getPrestamo()).build())
                         .build()
                 );
+    }
+
+    @Override
+    public Flux<Solicitud> findSolicitudesPendientesConFiltros(Integer plazo, String email, String nombre, Integer tipoPrestamo, Integer estadoSolicitud, int pagina, int tamano) {
+        int offset = pagina * tamano;
+        return repository.findSolicitudesPendientesConFiltros(plazo, email, nombre, tipoPrestamo, estadoSolicitud, tamano, offset)
+                .map(this::mapToSolicitudWithDetails);
+    }
+
+    @Override
+    public Mono<Long> countSolicitudesPendientesConFiltros(Integer plazo, String email, String nombre, Integer tipoPrestamo, Integer estadoSolicitud) {
+        return repository.countSolicitudesPendientesConFiltros(plazo, email, nombre, tipoPrestamo, estadoSolicitud);
+    }
+
+    @Override
+    public Mono<Long> sumMontoSolicitudesAprobadas() {
+        return repository.sumMontoSolicitudesAprobadas();
+    }
+
+    private Solicitud mapToSolicitudWithDetails(SolicitudEntity entity) {
+        return Solicitud.builder()
+                .id(entity.getId())
+                .monto(entity.getMonto())
+                .plazo(entity.getPlazo())
+                .email(entity.getEmail())
+                .estado(Estado.builder().id(entity.getEstado()).build())
+                .prestamo(Prestamo.builder()
+                        .id(entity.getPrestamo())
+                        .nombre(entity.getNombrePrestamo())
+                        .tasaInteres(entity.getTasaInteres())
+                        .build())
+                .nombre(entity.getNombreUsuario())
+                .salarioBase(entity.getSalarioBase())
+                .build();
     }
 }
 

@@ -35,4 +35,17 @@ public class SolicitudEntity {
 
     @Column("id_tipo_prestamo")
     private int prestamo;
+    
+    // Campos adicionales para la consulta con JOIN
+    @Column("nombre_prestamo")
+    private String nombrePrestamo;
+    
+    @Column("tasa_interes")
+    private Double tasaInteres;
+    
+    @Column("nombre_usuario")
+    private String nombreUsuario;
+    
+    @Column("salario_base")
+    private Long salarioBase;
 }

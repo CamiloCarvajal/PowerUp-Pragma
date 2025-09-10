@@ -4,6 +4,7 @@ import org.springdoc.core.annotations.RouterOperation;
 import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
@@ -17,12 +18,20 @@ public class RouterRest {
     @RouterOperations({
             @RouterOperation(
                     path = "/api/v1/solicitud",
+                    method = RequestMethod.POST,
                     beanClass = Handler.class,
                     beanMethod = "crearSolicitud"
+            ),
+            @RouterOperation(
+                    path = "/api/v1/solicitud",
+                    method = RequestMethod.GET,
+                    beanClass = Handler.class,
+                    beanMethod = "consultarSolicitudesPendientes"
             )
     })
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {
-        return route(POST("/api/v1/solicitud"), handler::crearSolicitud);
+        return route(POST("/api/v1/solicitud"), handler::crearSolicitud)
+                .andRoute(GET("/api/v1/solicitud"), handler::consultarSolicitudesPendientes);
 //                .andRoute(GET("/api/usecase/path"), handler::listenGETUseCase)
 //                .andRoute(POST("/api/usecase/otherpath"), handler::listenPOSTUseCase)
 //                .and(route(GET("/api/otherusercase/path"), handler::listenGETOtherUseCase));
