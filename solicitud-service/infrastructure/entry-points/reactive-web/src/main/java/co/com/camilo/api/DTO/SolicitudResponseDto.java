@@ -13,19 +13,22 @@ public record SolicitudResponseDto(
         @Schema(description = "Email del solicitante", example = "usuario@email.com")
         String email,
         
-        @Schema(description = "Nombre del solicitante", example = "Juan Pérez")
-        String nombre,
+//        @Schema(description = "Nombre del solicitante", example = "Juan Pérez")
+//        String nombre,
+
+        @Schema(description = "Estado", example = "Juan Pérez")
+        String estado,
         
-        @Schema(description = "ID del tipo de préstamo", example = "1")
-        Integer tipoPrestamo,
+        @Schema(description = "Tipo de préstamo", example = "1")
+        String tipoPrestamo,
         
         @Schema(description = "Tasa de interés", example = "12.5")
         Double tasaInteres,
         
         @Schema(description = "ID del estado de la solicitud", example = "1")
-        Integer estadoSolicitud,
+        Integer estadoSolicitud
         
-        @Schema(description = "Salario base del solicitante", example = "3000000")
-        Long salarioBase
+//        @Schema(description = "Salario base del solicitante", example = "3000000")
+//        Long salarioBase
 ) {
 }

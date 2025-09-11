@@ -43,8 +43,11 @@ public class SolicitudEntity {
     @Column("tasa_interes")
     private Double tasaInteres;
     
-    @Column("nombre_usuario")
-    private String nombreUsuario;
+//    @Column("nombre_usuario")
+//    private String nombreUsuario;
+
+    @Column("nombre_estado")
+    private String nombreEstado;
     
     @Column("salario_base")
     private Long salarioBase;

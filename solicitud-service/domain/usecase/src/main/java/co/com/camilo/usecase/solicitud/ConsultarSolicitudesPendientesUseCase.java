@@ -17,9 +17,15 @@ public class ConsultarSolicitudesPendientesUseCase {
     private final SolicitudRepository solicitudRepository;
 
     public Mono<SolicitudesPaginadasDto> consultarSolicitudesPendientes(
-            Integer plazo, String email, String nombre, Integer tipoPrestamo, 
-            Integer estadoSolicitud, int pagina, int tamano, UsuarioAutenticado usuario) {
-        System.out.println("-- ENTRE");
+            Integer plazo,
+            String email,
+            String nombre,
+            Integer tipoPrestamo,
+            Integer estadoSolicitud,
+            int pagina,
+            int tamano,
+            UsuarioAutenticado usuario
+    ) {
         return validarUsuarioAsesor(usuario)
                 .then(consultarSolicitudesConFiltros(plazo, email, nombre, tipoPrestamo, estadoSolicitud, pagina, tamano))
                 .flatMap(resultado -> consultarDeudaTotalAprobadas()
@@ -30,18 +36,23 @@ public class ConsultarSolicitudesPendientesUseCase {
         if (usuario == null) {
             return Mono.error(new AccesoDenegadoException("Usuario no autenticado"));
         }
-        
+
         if (!"ASESOR".equalsIgnoreCase(usuario.getNombreRol())) {
             return Mono.error(new AccesoDenegadoException("Solo los usuarios tipo ASESOR pueden consultar solicitudes pendientes"));
         }
-        
+
         return Mono.empty();
     }
 
     private Mono<ResultadoConsulta> consultarSolicitudesConFiltros(
-            Integer plazo, String email, String nombre, Integer tipoPrestamo, 
-            Integer estadoSolicitud, int pagina, int tamano) {
-        
+            Integer plazo,
+            String email,
+            String nombre,
+            Integer tipoPrestamo,
+            Integer estadoSolicitud,
+            int pagina,
+            int tamano
+    ) {
         return Mono.zip(
                 solicitudRepository.findSolicitudesPendientesConFiltros(plazo, email, nombre, tipoPrestamo, estadoSolicitud, pagina, tamano)
                         .map(this::mapToResponseDto)
@@ -59,8 +70,8 @@ public class ConsultarSolicitudesPendientesUseCase {
                 .monto(solicitud.getMonto())
                 .plazo(solicitud.getPlazo())
                 .email(solicitud.getEmail())
-                .nombre(solicitud.getNombre())
-                .tipoPrestamo(solicitud.getPrestamo() != null ? solicitud.getPrestamo().getId() : null)
+                .estado(solicitud.getEstado() != null ? solicitud.getEstado().getNombre() : null)
+                .tipoPrestamo(solicitud.getPrestamo() != null ? solicitud.getPrestamo().getNombre() : null)
                 .tasaInteres(solicitud.getPrestamo() != null ? solicitud.getPrestamo().getTasaInteres() : null)
                 .estadoSolicitud(solicitud.getEstado() != null ? solicitud.getEstado().getId() : null)
                 .salarioBase(solicitud.getSalarioBase())
@@ -68,10 +79,14 @@ public class ConsultarSolicitudesPendientesUseCase {
     }
 
     private SolicitudesPaginadasDto construirRespuesta(
-            List<SolicitudConsultaDto> solicitudes, Long total, int pagina, int tamano, Long deudaTotal) {
-        
+            List<SolicitudConsultaDto> solicitudes,
+            Long total,
+            int pagina,
+            int tamano,
+            Long deudaTotal
+    ) {
         int totalPaginas = (int) Math.ceil((double) total / tamano);
-        
+
         return SolicitudesPaginadasDto.builder()
                 .solicitudes(solicitudes)
                 .totalElementos(total)
@@ -82,5 +97,6 @@ public class ConsultarSolicitudesPendientesUseCase {
                 .build();
     }
 
-    private record ResultadoConsulta(List<SolicitudConsultaDto> solicitudes, Long total) {}
+    private record ResultadoConsulta(List<SolicitudConsultaDto> solicitudes, Long total) {
+    }
 }

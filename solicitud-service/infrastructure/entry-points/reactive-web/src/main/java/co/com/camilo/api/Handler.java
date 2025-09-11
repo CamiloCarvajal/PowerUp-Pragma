@@ -15,6 +15,8 @@ import co.com.camilo.usecase.solicitud.SolicitudUseCase;
 import co.com.camilo.usecase.solicitud.ConsultarSolicitudesPendientesUseCase;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -78,7 +80,7 @@ public class Handler {
     )
     public Mono<ServerResponse> crearSolicitud(ServerRequest serverRequest) {
         log.info("Recibida solicitud POST para crear solicitud de crédito");
-        
+
         return serverRequest.bodyToMono(CreateSolicitudDto.class)
                 .doOnNext(clase -> log.debug(" >> Clase {}", clase.prestamo()))
                 .flatMap(this::validateCreateUserRequest)
@@ -122,6 +124,14 @@ public class Handler {
                     responseCode = "500",
                     description = "Error interno del servidor"
             )
+    })
+    @Parameters({
+            @Parameter(name = "plazo", description = "Tiempo de pago en meses", required = false),
+            @Parameter(name = "email", description = "Email del usuario", required = false),
+            @Parameter(name = "tipoPrestamo", description = "Tipo de prestamo", required = false),
+            @Parameter(name = "estadoSolicitud", description = "Estado actual de la solicitud", required = false),
+            @Parameter(name = "tamano", description = "Cantidad de registros o obtener", required = false),
+            @Parameter(name = "pagina", description = "Pagina", required = false)
     })
     public Mono<ServerResponse> consultarSolicitudesPendientes(ServerRequest serverRequest) {
         log.info("Recibida solicitud GET para consultar solicitudes pendientes");
@@ -318,11 +328,11 @@ public class Handler {
                 solicitud.getMonto(),
                 solicitud.getPlazo(),
                 solicitud.getEmail(),
-                solicitud.getNombre(),
+                solicitud.getEstado(),
                 solicitud.getTipoPrestamo(),
                 solicitud.getTasaInteres(),
-                solicitud.getEstadoSolicitud(),
-                solicitud.getSalarioBase()
+                solicitud.getEstadoSolicitud()
+//                solicitud.getSalarioBase()
         );
     }
 }

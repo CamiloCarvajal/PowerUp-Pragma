@@ -93,13 +93,16 @@ public class SolicitudRepositoryAdapter extends ReactiveAdapterOperations<
                 .monto(entity.getMonto())
                 .plazo(entity.getPlazo())
                 .email(entity.getEmail())
-                .estado(Estado.builder().id(entity.getEstado()).build())
+                .estado(Estado.builder()
+                        .id(entity.getEstado())
+                        .nombre(entity.getNombreEstado())
+                        .build())
                 .prestamo(Prestamo.builder()
                         .id(entity.getPrestamo())
                         .nombre(entity.getNombrePrestamo())
                         .tasaInteres(entity.getTasaInteres())
                         .build())
-                .nombre(entity.getNombreUsuario())
+                .nombre("")
                 .salarioBase(entity.getSalarioBase())
                 .build();
     }

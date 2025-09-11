@@ -15,8 +15,9 @@ public class SolicitudConsultaDto {
     private Long monto;
     private Integer plazo;
     private String email;
-    private String nombre;
-    private Integer tipoPrestamo;
+//    private String nombre;
+    private String estado;
+    private String tipoPrestamo;
     private Double tasaInteres;
     private Integer estadoSolicitud;
     private Long salarioBase;
