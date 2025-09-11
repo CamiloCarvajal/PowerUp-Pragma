@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -76,6 +77,9 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
 		if (ex instanceof AccesoDenegadoException) {
 			return HttpStatus.FORBIDDEN;
 		}
+		if (ex instanceof org.springframework.security.access.AccessDeniedException) {
+			return HttpStatus.FORBIDDEN;
+		}
 		if (ex instanceof TokenInvalidoException) {
 			return HttpStatus.UNAUTHORIZED;
 		}
@@ -95,6 +99,9 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
 		if (ex instanceof AccesoDenegadoException) {
 			return "ACCESS_DENIED";
 		}
+		if (ex instanceof org.springframework.security.access.AccessDeniedException) {
+			return "ACCESS_DENIED";
+		}
 		if (ex instanceof TokenInvalidoException) {
 			return "TOKEN_INVALID";
 		}
@@ -105,7 +112,6 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
 	}
 
 	private String buildMessage(Throwable ex, String code) {
-		String base = ex.getMessage() != null ? ex.getMessage() : "Error inesperado";
-		return "[" + code + "] " + base;
+		return ex.getMessage() != null ? ex.getMessage() : "Error inesperado";
 	}
 }
