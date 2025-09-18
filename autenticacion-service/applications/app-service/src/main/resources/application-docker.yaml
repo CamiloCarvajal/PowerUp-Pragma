@@ -1,0 +1,47 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: autenticacion-service
+  # r2dbc:
+  #   url: ${SPRING_R2DBC_URL:r2dbc:postgresql://autenticacion-db:5432/crediYa}
+  #   username: ${SPRING_R2DBC_USERNAME:postgres}
+  #   password: ${SPRING_R2DBC_PASSWORD:Camilo597}
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:miClaveSecretaMuySeguraParaJWTQueDebeSerMuyLargaYComplejaParaSeguridad}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+adapters:
+  r2dbc:
+    host: "autenticacion-db"
+    port: 5432
+    database: "crediYa"
+    schema: "public"
+    username: "postgres"
+    password: "Camilo597"
+
+# Logging
+logging:
+  level:
+    co.com.camilo: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web.reactive: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+# CORS para Docker
+cors:
+  allowed-origins: "*"
