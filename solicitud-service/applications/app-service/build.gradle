@@ -14,17 +14,17 @@ dependencies {
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
 }
 
-tasks.register('explodedJar', Copy) {
-    with jar
-    into layout.buildDirectory.dir("exploded")
-}
-
 jar {
     // To disable the *-plain.jar
     enabled = false
 }
 
 bootJar {
-    // Sets output jar name
-    archiveFileName = "${project.getParent().getName()}.${archiveExtension.get()}"
+    archiveFileName = 'solicitud-service.jar'
+    mainClass = 'co.com.camilo.MainApplication'
+}
+
+tasks.register('explodedJar', Copy) {
+    with jar
+    into layout.buildDirectory.dir("exploded")
 }

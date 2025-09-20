@@ -1,0 +1,107 @@
+services:
+  # Base de datos para autenticación
+  autenticacion-db:
+    image: postgres:15
+    container_name: autenticacion-db
+    environment:
+      POSTGRES_DB: crediYa
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Camilo597
+    volumes:
+      - autenticacion-db-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d crediYa"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # Base de datos para solicitud
+  solicitud-db:
+    image: postgres:15
+    container_name: solicitud-db
+    environment:
+      POSTGRES_DB: crediYa_solicitud
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Camilo597
+    volumes:
+      - solicitud-db-data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d crediYa_solicitud"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # Servicio de autenticación
+  autenticacion-service:
+    build:
+      context: ./autenticacion-service
+      dockerfile: deployment/Dockerfile
+    container_name: autenticacion-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_R2DBC_URL=r2dbc:postgresql://autenticacion-db:5432/crediYa
+      - SPRING_R2DBC_USERNAME=postgres
+      - SPRING_R2DBC_PASSWORD=Camilo597
+      - JWT_SECRET=miClaveSecretaMuySeguraParaJWTQueDebeSerMuyLargaYComplejaParaSeguridad
+      - JWT_EXPIRATION=86400000
+    ports:
+      - "8080:8080"
+    depends_on:
+      autenticacion-db:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  # Servicio de solicitud
+  solicitud-service:
+    build:
+      context: ./solicitud-service
+      dockerfile: deployment/Dockerfile
+    container_name: solicitud-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_R2DBC_URL=r2dbc:postgresql://solicitud-db:5432/crediYa_solicitud
+      - SPRING_R2DBC_USERNAME=postgres
+      - SPRING_R2DBC_PASSWORD=Camilo597
+      - AUTENTICACION_BASE_URL=http://autenticacion-service:8080
+      - JWT_SECRET=miClaveSecretaMuySeguraParaJWTQueDebeSerMuyLargaYComplejaParaSeguridad
+      - JWT_EXPIRATION=86400000
+    ports:
+      - "8081:8081"
+    depends_on:
+      solicitud-db:
+        condition: service_healthy
+      autenticacion-service:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8082/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+volumes:
+  autenticacion-db-data:
+  solicitud-db-data:
+
+networks:
+  app-network:
+    driver: bridge

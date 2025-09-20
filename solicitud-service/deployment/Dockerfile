@@ -1,7 +1,22 @@
-FROM eclipse-temurin:21-jdk-alpine
-VOLUME /tmp
-COPY *.jar solicitudes.jar
-ENV JAVA_OPTS=" -Xshareclasses:name=cacheapp,cacheDir=/cache,nonfatal -XX:+UseContainerSupport -XX:MaxRAMPercentage=70 -Djava.security.egd=file:/dev/./urandom"
-# Replace with a non-root user to avoid running the container with excessive privileges
-USER appuser
-ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS  -jar solicitudes.jar" ]
+FROM eclipse-temurin:19-jdk AS builder
+WORKDIR /workspace/app
+
+COPY gradlew .
+COPY gradle/ gradle/
+COPY build.gradle .
+COPY settings.gradle .
+COPY . .
+
+RUN chmod +x ./gradlew
+RUN ./gradlew clean build -x test --no-daemon
+
+FROM eclipse-temurin:19-jre
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /workspace/app/applications/app-service/build/libs/solicitud-service.jar app.jar
+
+EXPOSE 8081
+ENV JAVA_OPTS="-Xms128m -Xmx512m -XX:MaxRAMPercentage=75.0"
+ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app/app.jar" ]

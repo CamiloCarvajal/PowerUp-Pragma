@@ -1,0 +1,45 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: solicitudes
+
+adapters:
+  r2dbc:
+    host: "solicitud-db"
+    port: 5432
+    database: "crediYa_solicitud"
+    schema: "public"
+    username: "postgres"
+    password: "Camilo597"
+
+# Configuración para comunicación con autenticacion
+autenticacion:
+  base-url: ${AUTENTICACION_BASE_URL:http://autenticacion-service:8080}
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:miClaveSecretaMuySeguraParaJWTQueDebeSerMuyLargaYComplejaParaSeguridad}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# Logging
+logging:
+  level:
+    co.com.camilo: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+# CORS para Docker
+cors:
+  allowed-origins: "*"
