@@ -1,3 +1,4 @@
+
 FROM eclipse-temurin:19-jdk AS builder
 WORKDIR /workspace/app
 
@@ -9,6 +10,9 @@ COPY . .
 
 RUN chmod +x ./gradlew
 RUN ./gradlew clean build -x test --no-daemon
+
+# Verificar que el bootJar se creó
+RUN find . -name "*.jar" -type f
 
 FROM eclipse-temurin:19-jre
 WORKDIR /app
